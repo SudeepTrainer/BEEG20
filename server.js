@@ -1,5 +1,6 @@
 // importing the module http
 const http = require('http');
+const queryString = require('querystring')
 // const port = process.env.PORT || 1337;
 const server = http.createServer(function(req,res){
     console.log("request listener function");
@@ -13,9 +14,12 @@ const server = http.createServer(function(req,res){
         respondText(req,res);
     } else if(req.url === "/person"){
         respondJson(req,res);
-    } else{
-        respondNothing(req,res);
+    } else if(req.url.match(/^\/converttouppercase/)){
+        respondConvert(req,res);
     }
+    else{
+        respondNothing(req,res);
+    } 
     res.end();
 })
 server.listen(3000,()=>{
@@ -36,4 +40,14 @@ function respondJson(req,res){
 function respondNothing(req,res){
     res.writeHead(404,"Nothing found");
     res.write("Nothing found");
+}
+
+function respondConvert(req,res){
+    console.log(req.url);// /converttouppercase?input=fsdfs&query=sdff
+    console.log(req.url.split("?"));
+    // [ '/converttouppercase', 'input=fsdfs&query=sdff' ]
+    console.log(req.url.split("?").slice(1)); 
+    // [ 'input=fsdfs&query=sdff' ]
+    console.log(req.url.split("?").slice(1).join(""));
+    // input=fsdfs&query=sdff
 }
