@@ -16,8 +16,9 @@ const server = http.createServer(function(req,res){
         respondJson(req,res);
     } else if(req.url.match(/^\/converttouppercase/)){
         respondConvert(req,res);
-    }
-    else{
+    } else if(req.url.match(/^\/files/)){
+        respondFile(req,res)
+    }else{
         respondNothing(req,res);
     } 
     res.end();
@@ -54,4 +55,8 @@ function respondConvert(req,res){
     const {input} = queryString.parse(req.url.split("?").slice(1).join(""));
     // { input: 'fsdfs', query: 'sdff' }
     res.write(input.toUpperCase());
+}
+
+function respondFile(req,res){
+    console.log(req.url.split("/files"));
 }
