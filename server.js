@@ -43,11 +43,15 @@ function respondNothing(req,res){
 }
 
 function respondConvert(req,res){
-    console.log(req.url);// /converttouppercase?input=fsdfs&query=sdff
-    console.log(req.url.split("?"));
+    // console.log(req.url);// /converttouppercase?input=fsdfs&query=sdff
+    // console.log(req.url.split("?"));
     // [ '/converttouppercase', 'input=fsdfs&query=sdff' ]
-    console.log(req.url.split("?").slice(1)); 
+    // console.log(req.url.split("?").slice(1)); 
     // [ 'input=fsdfs&query=sdff' ]
-    console.log(req.url.split("?").slice(1).join(""));
+    // console.log(req.url.split("?").slice(1).join(""));
     // input=fsdfs&query=sdff
+    // console.log(queryString.parse(req.url.split("?").slice(1).join("")));
+    const {input} = queryString.parse(req.url.split("?").slice(1).join(""));
+    // { input: 'fsdfs', query: 'sdff' }
+    res.write(input.toUpperCase());
 }
