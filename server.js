@@ -1,6 +1,7 @@
 // importing the module http
 const http = require('http');
 const queryString = require('querystring')
+const fs = require('fs');
 // const port = process.env.PORT || 1337;
 const server = http.createServer(function(req,res){
     console.log("request listener function");
@@ -21,7 +22,7 @@ const server = http.createServer(function(req,res){
     }else{
         respondNothing(req,res);
     } 
-    res.end();
+    // res.end();
 })
 server.listen(3000,()=>{
     console.log("starting the server");
@@ -30,17 +31,17 @@ server.listen(3000,()=>{
 
 function respondText(req,res){
     res.setHeader("Content-Type","text/plain");
-    res.write("Hi from the server");
+    res.end("Hi from the server");
 }
 
 function respondJson(req,res){
     res.setHeader("Content-Type","application/json")
-    res.write(JSON.stringify({name:"Bill",age:23}))
+    res.end(JSON.stringify({name:"Bill",age:23}))
 }
 
 function respondNothing(req,res){
     res.writeHead(404,"Nothing found");
-    res.write("Nothing found");
+    res.end("Nothing found");
 }
 
 function respondConvert(req,res){
@@ -54,9 +55,17 @@ function respondConvert(req,res){
     // console.log(queryString.parse(req.url.split("?").slice(1).join("")));
     const {input} = queryString.parse(req.url.split("?").slice(1).join(""));
     // { input: 'fsdfs', query: 'sdff' }
-    res.write(input.toUpperCase());
+    res.end(input.toUpperCase());
 }
 
 function respondFile(req,res){
-    console.log(req.url.split("/files"));
+    // console.log(req.url.split("/files"));
+    // const filename = req.url.split("/files")[1];
+    // console.log(filename);
+
+    const filename = `${__dirname}/public${req.url.split("/files")[1]}`
+    console.log(filename);
+    fs.createReadStream(filename)
+        .on('error',()=>{respondNothing(req,res)})
+        .pipe(res)
 }
