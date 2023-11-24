@@ -2,6 +2,17 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+function middleware1(req,res,next){
+    console.log("Middleware 1 called");
+    const errorObj = new Error("just another error");
+    next(errorObj);
+}
+
+function errorHandler(err,req,res,next){
+    console.error(err.stack);
+    res.status(500).send("<h1>Error.Please try after some time.</h1>")
+}
+
 //global middleware
 function logMiddleware(req,res,next){
     console.log("log middleware called");
@@ -14,8 +25,8 @@ function logMiddleware(req,res,next){
     console.log("after");
 }
 
+app.use(middleware1);
 app.use(logMiddleware);
-
 //default page
 const defaultResponse = function (requestObject,responseObject,nextMiddleware){
     console.log("default page route action called");
@@ -38,6 +49,8 @@ const auth = function(req,res,next){
     }
 }
 app.get("/login",auth,loginResponse);
+
+app.use(errorHandler);
 
 app.listen(port,()=>{
     console.log(`listening on the port ${port}`);
