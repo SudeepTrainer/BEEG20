@@ -6,7 +6,7 @@ const bcrypt  = require('bcryptjs');
 const cookieparser = require('cookie-parser');
 const cookieParser = require('cookie-parser');
 
-const databaseUri = "mongodb://127.0.0.1:27017/mydb";
+const databaseUri = "mongodb://127.0.0.1:27017/dbauth";
 
 async function db(){
     await mongoose.connect(databaseUri)
@@ -22,6 +22,14 @@ db()
 
 const PORT = 3000;
 const application = express();
+
+//Database schemas
+const userSchema = new mongoose.Schema({
+    username:String,
+    password:String
+})
+const User = mongoose.model('User',userSchema);
+
 // const store = new mongodbStore({
 //     uri:databaseUri,
 //     collection:"sessions"
@@ -58,6 +66,36 @@ application.get("/login",(req,res)=>{
 })
 application.get("/register",(req,res)=>{
     res.render('register');
+})
+application.post('/register',async (req,res)=>{
+    console.log(req.body);
+    const {username,password} = req.body;
+    
+    try{
+        if(!username||!password){
+            throw new Error('Enter username/password')
+        }
+        // check if username already exists in database
+        const existingUser = await User.findOne({username});
+        if(existingUser){
+            res.status(400).render('register',{"error":"Username already exists"});
+            return
+        }
+        // securing the password
+        const hashedPassword = bcrypt.hashSync(password,10);
+        // creating the user dta to be saved
+        const newUser = new User({
+            username,
+            password:hashedPassword
+        })
+        // saving th the database
+        await newUser.save();
+        // on success redirecting to login
+        res.status(201).redirect('/login');
+    }catch(error){
+        console.log(error);
+        res.status(500).render('register',{"error":"Internal server error"})
+    }
 })
 //start server
 application.listen(PORT,()=>{
