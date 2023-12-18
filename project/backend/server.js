@@ -3,7 +3,6 @@ const express = require('express')
 const mongoose = require('mongoose');
 // const mongodbStore = require('connect-mongodb-session')(session);
 const bcrypt  = require('bcryptjs');
-const cookieparser = require('cookie-parser');
 const cookieParser = require('cookie-parser');
 
 const databaseUri = "mongodb://127.0.0.1:27017/dbauth";
