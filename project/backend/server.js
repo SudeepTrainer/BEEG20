@@ -53,15 +53,52 @@ application.use(express.urlencoded({extended:true}));
 
 application.set('view engine','ejs');
 
+application.use((req,res,next)=>{
+    const {auth} = req.cookies;
+    if(auth){
+        req.isAuthenticated = true;
+    }else{
+        req.isAuthenticated = false;
+    }
+    next();
+})
+const isAuthenticated = (req,res,next)=>{
+    if(req.isAuthenticated){
+        next()
+    }else{
+        res.status(401).redirect("/login")
+    }
+}
 //routing
-application.get("/",(req,res)=>{
+application.get("/",isAuthenticated,(req,res)=>{
     // req.session.isAuth = true;
     // console.log(req.session);
     // console.log(req.session.id);
     res.render("home")
 });
+application.get("/logout",(req,res)=>{
+    res.clearCookie("auth");
+    res.status(200).redirect("/login");
+})
 application.get("/login",(req,res)=>{
     res.render('login');
+})
+
+application.post("/login",async (req,res)=>{
+    const {username,password} = req.body;
+    try{
+        // check if the user exists
+        const user = await User.findOne({username});
+        if(user && bcrypt.compareSync(password,user.password)){
+            res.cookie("auth",true);
+            res.status(200).redirect("/");
+        }else{
+            res.status(401).render('login',{"error":"Username/password not match"})
+        }
+    }catch(error){
+        console.log(error);
+        res.status(500).render('login',{"error":"Internal server error"})
+    }
 })
 application.get("/register",(req,res)=>{
     res.render('register');
