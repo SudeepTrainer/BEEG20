@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 const bcrypt  = require('bcryptjs');
 const cookieParser = require('cookie-parser');
 
+const User = require('./models/user');
+const Product = require('./models/product');
+
 const databaseUri = "mongodb://127.0.0.1:27017/dbauth";
 
 async function db(){
@@ -22,12 +25,6 @@ db()
 const PORT = 3000;
 const application = express();
 
-//Database schemas
-const userSchema = new mongoose.Schema({
-    username:String,
-    password:String
-})
-const User = mongoose.model('User',userSchema);
 
 // const store = new mongodbStore({
 //     uri:databaseUri,
@@ -70,11 +67,14 @@ const isAuthenticated = (req,res,next)=>{
     }
 }
 //routing
-application.get("/",isAuthenticated,(req,res)=>{
-    // req.session.isAuth = true;
-    // console.log(req.session);
-    // console.log(req.session.id);
-    res.render("home")
+application.get("/",isAuthenticated,async(req,res)=>{
+    try{
+        const products = await Product.find({});
+        res.status(200).render("home",{products});
+    }catch(error){
+        console.log(error);
+        res.status(500).render('home',{"error":"Internal server error"})
+    }
 });
 application.get("/logout",(req,res)=>{
     res.clearCookie("auth");
