@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 
 const User = require('./models/user');
 const Product = require('./models/product');
+const CartItem = require('./models/cartitem');
 
 const databaseUri = "mongodb://127.0.0.1:27017/dbauth";
 
@@ -133,6 +134,54 @@ application.post('/register',async (req,res)=>{
         res.status(500).render('register',{"error":"Internal server error"})
     }
 })
+
+// get cart
+application.get("/cart",async (req,res)=>{
+    try{
+        // get cart items from db
+        const cartItems = await CartItem.find({}).populate('product');
+        // get the total price of all items
+        const total = cartItems.reduce((acc,item)=>
+                     acc + item.quantity * item.product.price,0 )
+        res.render('cart',{cart:cartItems,total});
+    }catch(error){
+        console.log(error);
+        res.status(500).render('home',{"error":"Internal server error"})
+    }
+})
+
+// add to cart post method
+
+application.post("/addToCart",async (req,res)=>{
+    console.log(req.body);
+    try{
+        const productID = req.body.productId;
+        const quantity = parseInt(req.body.quantity);
+
+        // fetch the selected product
+        const product = await Product.findById(productID);
+        if(!product){
+            return res.status(404).send("Product not found");
+        }
+        // check the item is already in the cart
+        const existingCartItem = await CartItem.findOne({product:productID});
+        if(existingCartItem){
+            existingCartItem.quantity +=1;
+            await existingCartItem.save();
+        }else{
+            // add a new item to the cart
+            await CartItem.create({
+                product:productID,
+                quantity:quantity
+            });
+        }
+        res.redirect("/cart");
+    }catch(error){
+        console.log('error');
+        res.status(500).render('home',{"error":"Internal server error"})
+    }
+})
+
 //start server
 application.listen(PORT,()=>{
     console.log(`Listening on ${PORT}`);
